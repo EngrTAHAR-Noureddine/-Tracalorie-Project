@@ -20,6 +20,9 @@ const ItemCtrl = (function(){
         totalCalories:0
     };
     return {
+        getItems : function(){
+            return data.items;
+        },
         logData : function(){
             return data;
         }
@@ -31,7 +34,7 @@ const UICtrl = (function(){
     
     //Public methods
     return {
-        
+
     }
 
 })();
@@ -40,7 +43,11 @@ const App = (function(ItemCtrl,UICtrl){
     //Public methods
     return {
         init: function(){
-            console.log("Init App...");
+            console.log("Initializing App...");
+           //fetch Items from data structure
+            const items = ItemCtrl.getItems();
+            // populate list with items
+            UICtrl.populateItemList(items);
         }
     }
    
