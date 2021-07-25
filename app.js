@@ -26,6 +26,9 @@ const ItemCtrl = (function(){
         logData : function(){
             return data;
         },
+        setCurrentItem: function(item){
+            data.currentItem = item;
+          },
         addItem : function(name,calories){
             let ID;
             //create id
@@ -40,6 +43,9 @@ const ItemCtrl = (function(){
             data.items.push(newItem);
             return newItem;
         },
+        getCurrentItem: function(){
+            return data.currentItem;
+          },
         getTotalCalories : function(){
             let total = 0;
             data.items.forEach(function(item){
@@ -48,7 +54,17 @@ const ItemCtrl = (function(){
             //set total cal in data structure
             data.totalCalories = total;
             return data.totalCalories;
-        }
+        },
+        getItemById: function(id){
+            let found = null;
+            // Loop through items
+            data.items.forEach(function(item){
+              if(item.id === id){
+                found = item;
+              }
+            });
+            return found;
+          },
     }
 })(); 
 
@@ -57,6 +73,9 @@ const UICtrl = (function(){
     const UISelectors = {
         itemList : '#item-list',
         addBtn : '.add-btn',
+        updateBtn: '.update-btn',
+        deleteBtn: '.delete-btn',
+        backBtn: '.back-btn',
         itemNameInput:'#item-name',
         itemCaloriesInput :'#item-calories',
         totalCalories : '.total-calories'
@@ -108,7 +127,25 @@ const UICtrl = (function(){
         },
         showTotalCalories : function(total){
             document.querySelector(UISelectors.totalCalories).textContent = total;
-        }
+        },
+        addItemToForm: function(){
+            document.querySelector(UISelectors.itemNameInput).value = ItemCtrl.getCurrentItem().name;
+            document.querySelector(UISelectors.itemCaloriesInput).value = ItemCtrl.getCurrentItem().calories;
+            UICtrl.showEditState();
+          },
+          clearEditState: function(){
+            UICtrl.clearInput();
+            document.querySelector(UISelectors.updateBtn).style.display = 'none';
+            document.querySelector(UISelectors.deleteBtn).style.display = 'none';
+            document.querySelector(UISelectors.backBtn).style.display = 'none';
+            document.querySelector(UISelectors.addBtn).style.display = 'inline';
+          },
+          showEditState: function(){
+            document.querySelector(UISelectors.updateBtn).style.display = 'inline';
+            document.querySelector(UISelectors.deleteBtn).style.display = 'inline';
+            document.querySelector(UISelectors.backBtn).style.display = 'inline';
+            document.querySelector(UISelectors.addBtn).style.display = 'none';
+          },
     } 
 
 })();
@@ -121,7 +158,9 @@ const App = (function(ItemCtrl,UICtrl){
         // Add item event 
         document.querySelector(UISelectors.addBtn).addEventListener(
             'click', itemAddSubmit );
-    }
+       // Edit icon click event
+       document.querySelector(UISelectors.itemList).addEventListener('click', itemUpdateSubmit);
+        }
     //Add item submit 
     const itemAddSubmit = function(e){
         e.preventDefault();
@@ -145,10 +184,36 @@ const App = (function(ItemCtrl,UICtrl){
         //console.log(input);
 
     }
+      // Update item submit
+  const itemUpdateSubmit = function(e){
+    if(e.target.classList.contains('edit-item')){
+      // Get list item id (item-0, item-1)
+      const listId = e.target.parentNode.parentNode.id;
+
+      // Break into an array
+      const listIdArr = listId.split('-');
+
+      // Get the actual id
+      const id = parseInt(listIdArr[1]);
+
+      // Get item
+      const itemToEdit = ItemCtrl.getItemById(id);
+
+      // Set current item
+      ItemCtrl.setCurrentItem(itemToEdit);
+
+      // Add item to form
+      UICtrl.addItemToForm();
+    }
+
+    e.preventDefault();
+  }
 
     //Public methods
     return {
         init: function(){
+           // Clear edit state / set initial set
+             UICtrl.clearEditState();
             console.log("Initializing App...");
            //fetch Items from data structure
             const items = ItemCtrl.getItems();
