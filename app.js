@@ -43,6 +43,9 @@ const ItemCtrl = (function(){
             data.items.push(newItem);
             return newItem;
         },
+        clearAllItems : function(){
+            data.items = [];
+        },
         updateItem: function(name,calories){
            //calories to num
            calories = parseInt(calories);
@@ -57,6 +60,19 @@ const ItemCtrl = (function(){
            });
 
            return found;
+        },
+        deleteItem : function(id){
+            //get the ids 
+            ids = data.items.map(function(item){
+                return item.id;
+            });
+             
+            // get index 
+            const index = ids.indexOf(id);
+
+            //remove item 
+            data.items.splice(index,1);
+
         },
         getCurrentItem: function(){
             return data.currentItem;
@@ -91,6 +107,7 @@ const UICtrl = (function(){
         updateBtn: '.update-btn',
         deleteBtn: '.delete-btn',
         backBtn: '.back-btn',
+        clearBtn : '.clear-btn',
         listItems : '#item-list li',
         itemNameInput:'#item-name',
         itemCaloriesInput :'#item-calories',
@@ -117,12 +134,25 @@ const UICtrl = (function(){
                 calories:document.querySelector(UISelectors.itemCaloriesInput).value
             }
         },
+        clearItems : function(){
+            let listItems = document.querySelectorAll(UISelectors.listItems);
+            // turn node list to array
+            listItems = Array.from(listItems);
+            listItems.forEach(function(item){
+                item.remove();
+            });
+        },
         hideList : function(){
             document.querySelector(UISelectors.itemList).style.display = 'none'; 
         },
         clearInput : function(){
             document.querySelector(UISelectors.itemNameInput).value = '';
             document.querySelector(UISelectors.itemCaloriesInput).value = '';
+        },
+        deleteListItem : function(id){
+            const itemID = `#item-${id}`;
+            const item = document.querySelector(itemID);
+            item.remove(); 
         },
         addListItem : function(item){
             document.querySelector(UISelectors.itemList).style.display = 'block'; 
@@ -198,6 +228,14 @@ const App = (function(ItemCtrl,UICtrl){
             // Edit icon click event
        document.querySelector(UISelectors.itemList).addEventListener('click', itemEditClick);
        document.querySelector(UISelectors.updateBtn).addEventListener('click', itemSubmitClick);
+       document.querySelector(UISelectors.backBtn).addEventListener('click', function(e){
+           e.preventDefault();
+           return UICtrl.clearEditState();
+       });
+       //delete btn 
+       document.querySelector(UISelectors.deleteBtn).addEventListener('click', itemDeleteSubmit);
+       //clear  btn 
+       document.querySelector(UISelectors.clearBtn).addEventListener('click', clearAllItemsClick);
        
     }
     //Add item submit 
@@ -261,6 +299,37 @@ const App = (function(ItemCtrl,UICtrl){
     }
 
     e.preventDefault();
+  }
+  //itemDeleteSubmit 
+  const itemDeleteSubmit = function(e){
+      e.preventDefault();
+    const currentItem = ItemCtrl.getCurrentItem();
+    //delete from data structure
+    ItemCtrl.deleteItem(currentItem.id);
+    //delete from UI
+    UICtrl.deleteListItem(currentItem.id);
+    //get total calories 
+    const totalCalories = ItemCtrl.getTotalCalories();
+    // add total cal in UI
+    UICtrl.showTotalCalories(totalCalories);
+    UICtrl.clearEditState();
+   if(totalCalories ===0) UICtrl.hideList();
+  }
+  //clearAllItemsClick
+  const clearAllItemsClick = function(e){
+      e.preventDefault();
+      //delete All items from data structure 
+    ItemCtrl.clearAllItems();
+    //delete in UI 
+    UICtrl.clearItems();
+        //get total calories 
+        const totalCalories = ItemCtrl.getTotalCalories();
+        // add total cal in UI
+        UICtrl.showTotalCalories(totalCalories);
+        UICtrl.clearEditState();
+
+        //hide th Ul
+        UICtrl.hideList();
   }
 
 
